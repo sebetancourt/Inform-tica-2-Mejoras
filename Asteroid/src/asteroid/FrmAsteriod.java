@@ -29,21 +29,19 @@ import javax.swing.Timer;
 public class FrmAsteriod extends javax.swing.JFrame implements KeyListener {
 
     Objeto nave = new Objeto(400,300,0,0,0);
-    double distancia,deley=0;       
+    double distancia,distancia1,deley,variar=0;       
     int movx1=0;
     int movx2=-800;
     int navelaterales,navefuego,cometamov,cometax,cometay,colision=0;
     int explosiones1,explosiones2=100;
-    int disparo=100;
-    
-
-     
+    Objeto disparo[] = new Objeto[10];
+    boolean disparado = false;
     
     Timer temporizador=new Timer(10, new ActionListener()
         {
         public void actionPerformed(ActionEvent e)
             {
-                disparo+=100;
+                
                 distancia=Math.sqrt(Math.pow(nave.getDrawLocationX()-(cometax+cometamov),2)+Math.pow(nave.getDrawLocationY()-(cometay+cometamov),2));
                 if(distancia<=90)
                 {
@@ -57,6 +55,7 @@ public class FrmAsteriod extends javax.swing.JFrame implements KeyListener {
                     
                     
                 }
+                
                 movx1+=10;
                 movx2+=10;
                 if(movx1==800)
@@ -68,17 +67,39 @@ public class FrmAsteriod extends javax.swing.JFrame implements KeyListener {
                     movx2=-800;
                 }
                 cometamov+=5;
-                
+                for(int i=0;i<10;i++)
+                {
+                    if(disparado==true)
+                    {
+                    disparo[i].setAccX(Math.cos(Math.toRadians(disparo[i].getAngulo()%360))*20);
+                    disparo[i].setAccY(Math.sin(Math.toRadians(disparo[i].getAngulo()%360))*20);
+                    disparo[i].setDrawLocationX(disparo[i].getDrawLocationX()+(int)disparo[i].getAccX());
+                    disparo[i].setDrawLocationY(disparo[i].getDrawLocationY()+(int)disparo[i].getAccY());
+                    }
+                }  
+                variar++;                
+                if(variar==25)
+                {
+                variar=0;
+                disparado=false;
+                }
                 repaint();
             }
         });
     public FrmAsteriod() {
         initComponents();
+        for(int i=0;i<10;i++)
+        {
+            disparo[i]=new Objeto(0,0,0,0,0);
+        }
         addKeyListener(this);
         cometax =(int)(Math.random()*800+1);
         cometay =(int)(Math.random()*1+1);
+           
                 
     }
+    
+    
     public void keyTyped(KeyEvent e) {}
     public void keyReleased(KeyEvent e) 
     {
@@ -89,16 +110,24 @@ public class FrmAsteriod extends javax.swing.JFrame implements KeyListener {
         }
         if(e.getKeyCode()==32)
         {
-            disparo=0;
-        }
-        
+            disparado=true;
+        }        
     }
     public void keyPressed(KeyEvent e)
     {
         
         if(e.getKeyCode()==32)
         {
-            disparo=1;
+            if(disparado==false) 
+            {
+                for(int i=0;i<10;i++)
+                {
+                    disparo[i].setAngulo(nave.getAngulo());
+                    disparo[i].setDrawLocationX(nave.getDrawLocationX()+40);
+                    disparo[i].setDrawLocationY(nave.getDrawLocationY()+40);       
+                }
+            }
+            
         }
         if(e.getKeyCode()==68)
         {
@@ -117,7 +146,7 @@ public class FrmAsteriod extends javax.swing.JFrame implements KeyListener {
             navefuego=1;          
          }
             nave.setAccX(Math.cos(Math.toRadians(nave.getAngulo()%360))*5.99);
-            nave.setAccY(Math.sin(Math.toRadians(nave.getAngulo()%360))*5.99);
+            nave.setAccY(Math.sin(Math.toRadians(nave.getAngulo()%360))*5.99);           
             if(nave.getDrawLocationX()>=815 )
             {
                 nave.setDrawLocationX(-10);
@@ -175,11 +204,7 @@ public class FrmAsteriod extends javax.swing.JFrame implements KeyListener {
         g.drawImage(imgDebris, movx2, 0,800,600,this);
         nave.setDrawLocationX(nave.getDrawLocationX()+nave.getAccX());
         nave.setDrawLocationY(nave.getDrawLocationY()+nave.getAccY());
-        if(disparo==1)
-        {
-            
-            g.drawImage(imgShot, (int)nave.getDrawLocationX()+disparo,(int)nave.getDrawLocationY()+43,10,10,this);
-        }
+        
         if (colision==0)
         {
             explosiones1=100;
@@ -208,7 +233,7 @@ public class FrmAsteriod extends javax.swing.JFrame implements KeyListener {
             g.drawImage(imgAsteroid, cometax+cometamov, cometay+cometamov,90,90,this);
             deley=0;
             }
-            //editar la explosion del asteroide moviendo la imagen en la matrz sin mover y dejandola en un solo lugar 
+             
         }
 
  
@@ -236,6 +261,20 @@ public class FrmAsteriod extends javax.swing.JFrame implements KeyListener {
         Graphics2D g2=(Graphics2D) g;
         // Drawing the rotated image at the required drawing locations
         g2.drawImage(op.filter(imgShip2, null),(int)nave.getDrawLocationX(), (int)nave.getDrawLocationY(), null);
+        }
+        if(disparado)
+        {
+            for(int i = 0; i<10; i++)
+            {
+
+                double rotationDisparo = Math.toRadians(disparo[i].getAngulo());
+                double locationXdisparo = imgShot.getWidth() / 2;
+                double locationYdisparo = imgShot.getHeight() / 2;
+                AffineTransform txDisparo = AffineTransform.getRotateInstance(rotationDisparo, locationXdisparo, locationYdisparo);
+                AffineTransformOp opDisparo = new AffineTransformOp(txDisparo, AffineTransformOp.TYPE_BILINEAR);
+                
+                g.drawImage(imgShot,(int)disparo[i].getDrawLocationX(),(int)disparo[i].getDrawLocationY(),8,8,this);
+            }
         }
     }
         
